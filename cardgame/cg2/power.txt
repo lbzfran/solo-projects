@@ -1,0 +1,16 @@
+#format[1]: PT,NM,DC,DMG,TYP,TG,RP : format[2]: PT,NM,DC,CH,EF,TG,RP
+1,Vatra,Light Fire Damage. Targets One Foe.,10,1,1,1
+1,Vota,Light Water Damage. Targets One Foe.,10,2,1,1
+1,Dah,Light Wind Damage. Targets One Foe.,10,3,1,1
+1,Hrast,Light Earth Damage. Targets One Foe.,10,4,1,1
+1,Slava,Light Damage. Targets One Foe.,10,5,1,1
+1,Vecer,Dark Damage. Targets One Foe.,10,6,1,1
+1,Zasuti,Light Fire Damage. Targets All Foes.,10,1,4,1
+1,Vodopad,Light Water Damage. Targets All Foes.,10,2,4,1
+1,Oluja,Light Wind Damage. Targets All Foes.,10,3,4,1
+1,Potres,Light Earth Damage. Targets All Foes.,10,4,4,1
+1,Razapeti,Light Damage. Targets All Foes.,10,5,4,1
+1,Zakopati,Dark Damage. Targets All Foes.,10,6,4,1
+1,Armi,Light Physical Damage. Targets one Foe. Repeats twice.,10,0,1,2
+2,Medo,Light chance to stun for two turns. Targets One Foe.,0.33,0,1,1
+2,Rez,Medium chance to inflict bleed for two turns. Targets One Foe.,0.67,1,1,1
