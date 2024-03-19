@@ -48,14 +48,11 @@ def scrape(count: int, words: list) -> dict:
 
 
 if len(sys.argv) > 1:
-    definitions = scrape(len(sys.argv), sys.argv)
+    definitions = scrape(len(sys.argv)-1, sys.argv[1:])
 
     for word in definitions.keys():
         print(f"{word}: {definitions[word]}")
 
-    sys.exit()
-else:
-    print("No arguments given.")
     sys.exit()
 
 if __name__ == "__main__":
