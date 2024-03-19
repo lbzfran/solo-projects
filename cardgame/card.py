@@ -8,22 +8,24 @@ from random import randint
 from math import sqrt
 
 class Card:
-    def __init__(self,card_type: int,name: str,description: str,action_type: bool,cost: int,val: float,typ: int,chn = 0,effect = 0,target = 1,repeat = 1):
-        self._ctp = card_type
+    def __init__(self,card_type: int,name: str,description: str,cost: int,val = 0.0,typ = 1,chance = 0,effect = 0,target = 1,repeat = 1):
+        self._ctp = card_type # DMG, BUFF, ABF
 
         self._name = name
         self._desc = description
 
-        # controls whether card uses stamina or mana.
-        self._atp = action_type
+        # controls whether card uses health or mana.
         self._cost = cost
 
+        # Damage var
         self._val = val
         self._type = typ
 
-        self._chn = chn
+        # Buff var
+        self._chn = chance
         self._efc = effect
 
+        # General var
         self._trg = target
         self._rpt = repeat
 
@@ -39,8 +41,8 @@ class Card:
         return self._ctp
 
     @property
-    def atype(self):
-        return self._atp
+    def cost(self):
+        return self._cost
 
     @property
     def val(self):
@@ -178,20 +180,13 @@ class Control:
         # checks if cost can be met
         match cin.atype:
             case 0:
-                # stamina check
-                amt = caster.sp - cin.cost
-                if amt < 0:
-                    print("Not enough stamina!")
-                    return 4
-                caster.sp = amt
-            case 1:
                 # mana check
                 amt = caster.mp - cin.cost
                 if amt < 0:
                     print("Not enough mana!")
                     return 4
                 caster.mp = amt
-            case 2:
+            case 1:
                 # health check
                 amt = caster.hp - cin.cost
                 if amt <= 0:
@@ -223,18 +218,60 @@ def import_full_deck():
         for line in rdeck:
             attr = line.split(",")
             if attr[0].isdigit():
-                # skip commented lines
-                fullDeck[str(idx)] = Card(int(attr[0]),str(attr[1]),str(attr[2]),bool(attr[3]),int(attr[4]),float(attr[5]),int(attr[6]),float(attr[7]),int(attr[8]),int(attr[9]),int(attr[10]))
+                # skips commented lines in .txt file
+                #                   Card(CARDTYPE,NAME,DESC,ATYPE,
+                                #   COST,VAL,TYPE,CHANCE,EFFECT REF,
+                                #   TARGET,REPEAT)
+
+                if int(attr[0]) == 1:
+                    fullDeck[str(idx)] = Card(card_type=int(attr[0]),
+                                              name=str(attr[1]),
+                                              description=str(attr[2]),
+                                              cost=int(attr[3]),
+                                              val=int(attr[4]),
+                                              typ=int(attr[5]),
+                                              target=int(attr[6]),
+                                              repeat=int(attr[7]))
+
+                if int(attr[0]) == 2:
+                    fullDeck[str(idx)] = Card(card_type=int(attr[0]),
+                                              name=str(attr[1]),
+                                              description=str(attr[2]),
+                                              cost=int(attr[3]),
+                                              chance=float(attr[4]),
+                                              effect=int(attr[5]),
+                                              target=int(attr[6]),
+                                              repeat=int(attr[7]))
+                if int(attr[0]) == 3:
+                    fullDeck[str(idx)] = Card(card_type=int(attr[0]),
+                                              name=str(attr[1]),
+                                              description=str(attr[2]),
+                                              cost=int(attr[3]),
+                                              val=int(attr[4]),
+                                              typ=int(attr[5]),
+                                              chance=float(attr[6]),
+                                              effect=int(attr[7]),
+                                              target=int(attr[8]),
+                                              repeat=int(attr[9]))
                 idx += 1
     return fullDeck
 
+"""
+    _CARD TYPES_
+     Damage
+     Buff
+     DMG & BUFF
+     Modifier: can be chained with other card types to modify their effects.
+     EX of Mods:
+    Reversal: if applicable, swaps the card type to its 'reversed' form.
+"""
 
 if __name__ == "__main__":
     deck = import_full_deck()
     print("Deck:")
     for key in deck.keys():
         text = ''
-        text += f"{key} {deck[key]}: {deck[key].desc} //"
+        text += f"{key} {deck[key]}: {deck[key].desc} // cost: {deck[key].cost}"
         if deck[key].ctype == 1 or deck[key].ctype == 3:
             text += f" dmg: {deck[key].val}"
         if deck[key].ctype == 2 or deck[key].ctype == 3:

@@ -1,12 +1,15 @@
-#CTP,NAME,DESC,COST,VAL,TYP(,CHC,EFC,TRG,RPT)
-1,Punch,Basic Physical attack. Strikes twice.,0,8,0,0,0,1,2
-2,Flames,Increase Physical Damage.,2,0,1,1,X,0,1
-1,Firebolt,Simple Fire Attack.,2,10,1,0,0,1,1
-2,Bubble,Creates light shield around an ally.,6,0,2,1,X,0,1
-1,Scattershot,Simple Water Attack. Targets 2 Random Enemies.,6,8,2,0,0,2,1
-2,Painleaf,Heals an ally.,6,15,3,1,X,1,1
-3,Rocktoss,Simple Earth Attack. Chance to strike twice.,6,15,3,0.33,X,1,1
-2,AMP UP,Increase Magical Damage.,4,0,4,1,X,1,1
-3,Powerzap,Simple Electric Attack. Chance to stun.,4,10,4,0.33,X,1,1
-1,Darkstab,Simple Dark Attack.,5,20,5,0,0,1,1
-1,Sharplight,Simple Holy Attack.,5,20,6,0,0,1,1
+#ATK,NAME,DESC,COST,VAL,TYP,TRG,RPT
+#BUF,NAME,DESC,COST,CHC,EFC,TRG,RPT
+#ABF,NAME,DESC,COST,VAL,TYP,CHC,EFC,TRG,RPT
+#MOD,NAME,DESC,COST...
+1,Punch,Basic PHYS attack. Strikes twice.,5,8,0,1,2
+2,Flames,Increase PHYS Damage.,5,1,1,1,1
+1,Firebolt,Simple FIRE Attack.,3,10,1,1,1
+2,Bubble,Creates light shield around an ally.,4,1,2,1,1
+1,Scattershot,Simple WATER Attack. Targets 2 Random Enemies.,6,8,2,0,0,2,1
+2,Painleaf,Heals an ally.,6,15,3,1,1,1,1
+1,Rocktoss,Simple EARTH Attack. Strikes twice.,4,6,3,1,2
+2,AMP UP,Increase MAG Damage.,3,1,4,1,1
+3,Powerzap,Simple ELEC Attack. Chance to stun.,4,10,4,0.33,0,1,1
+1,Darkstab,Simple DARK Attack.,5,20,5,1,1
+1,Sharplight,Simple HOLY Attack.,5,20,6,1,1
