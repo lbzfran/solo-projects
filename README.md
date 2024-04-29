@@ -5,7 +5,7 @@ Small projects I have been working on.
 A small card game based on the mechanics of a Shin Megami Tensei game. Currently incomplete.
 
 ## File Type Report
-Reports by file extension the count and total byte size in HTML/XML.
+Reports by file extension the count and total byte size in HTML/XML. Written in C#.
 
 Needs to be compiled in Visual Studio.
 
