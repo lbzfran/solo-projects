@@ -12,6 +12,10 @@ Running with arguments defines the words given and passes them to stdout.
 
 `python uscrape.py word1 word2 ...`
 
-
 ## Card Game
 A small card game based on the mechanics of a Shin Megami Tensei game. Currently incomplete.
+
+## File Type Report
+Reports by file extension the count and total byte size in HTML/XML.
+
+Needs to be compiled in Visual Studio.
