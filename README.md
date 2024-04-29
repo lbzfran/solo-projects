@@ -37,4 +37,6 @@ Running with arguments defines the words given and passes them to stdout.
 ## Window Maker (WIP)
 Currently opens a directory, and scans for images to view.
 
+`python window.py`
+
 
