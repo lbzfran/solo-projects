@@ -3,6 +3,7 @@ import requests
 import csv
 import sys
 from os.path import exists
+from time import sleep
 
 def get_words(single = False):
 
@@ -17,7 +18,7 @@ def get_words(single = False):
         words.append(word)
         word = ''
         if single:
-            break
+            return words[0]
 
     return words
 
@@ -64,15 +65,14 @@ if __name__ == "__main__":
             case "1":
                 word = get_words(True)
                 definition = scrape(1,word)
-                print(f"{word[0]}: {definition[word[0]]}")
-                
+                print(f"{word}: {definition[word]}")
             case "2":
                 words = get_words()
                 definitions = scrape(len(words),words)
-
                 for word in words:
                     if word:
                         print(f"{word}: {definitions[word]}")
+                        sleep(1.5)
             case _:
                 break
 
