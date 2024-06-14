@@ -1,6 +1,3 @@
-MAIN:
-PUSH 12
-PUSH 2
-ADD
-POP
-;
+PUSH -112 PUSH 2
+// What a douche
+ADD POP PUSH 15.2 mul POP

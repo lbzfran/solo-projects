@@ -1,23 +1,7 @@
-
+from dataclasses import dataclass
 from enum import Enum
-
-class TokenType(Enum):
-    # 0: EOF
-    NONE = 0
-    # 1-16 KEYWORDS (MUST BE IN CAPS)
-    PUSH = 1
-    POP = 2
-    ADD = 3
-    SUB = 4
-    MUL = 5
-    DIV = 6
-    # 10-19
-    NUMBER = 17
-    START_IDENTIFIER = 18
-    END_IDENTIFIER = 19
-
-    # 99 EOF
-    EOF = 99
+from os import access, R_OK
+from os.path import isfile
 
 # not currently important, but will need when i transform from oop to procedural.
 def iota(reset=False):
@@ -28,148 +12,200 @@ def iota(reset=False):
     iota_counter += 1
     return result
 
+
+class TokenType(Enum):
+    NONE = iota(True)
+
+    # stack manipulation
+    PUSH = iota() # a -- a ; implicit if var is defined, or constant is given.
+    POP = iota()  # a --
+    DUP = iota()  # a -- a a
+    SWAP = iota() # a b -- b a
+    OVER = iota() # a b -- a b a
+    ROT = iota()  # a b c -- b c a
+    EXCH = iota() # a b -- b a
+
+    # braces
+    LBRACE = iota() # {
+    RBRACE = iota() # }
+    LPAREN = iota() # (
+    RPAREN = iota() # )
+    LBRACK = iota() # [
+    RBRACK = iota() # ]
+
+    # operators
+    # unary operators
+    NEG = iota() # [-]a -- [-a]
+
+    # binary operators
+    ADD = iota() # a b [+] = b + a
+    SUB = iota() # a b [-] = b - a
+    MUL = iota() # a b [*] = b * a
+    DIV = iota() # a b [/ or //] = b / a
+    MOD = iota() # a b [%] = b % a
+
+    NOT = iota() # z [!] = not Z
+    AND = iota() # y z [&] = y and z
+    OR = iota()  # y z [|] = y or z
+
+    # types
+    INT = iota() # [0-9] # dynamically typed from numbers.
+    FLOAT = iota() # [0-9].[0-9]
+    IDENTIFIER = iota() # [a-zA-Z] # variable or function name.
+    COMMENT = iota() # //
+
+    RETURN = iota() # return
+
+    EOF = iota()
+
+@dataclass(repr=False)
 class Token:
-    def __init__(self, token_type: TokenType, value: str | int | None):
-        self.token_type = token_type
-        self.value = value
+    type: TokenType
+    val: str
 
     def __str__(self):
-        return f"{self.token_type.name}: {self.value}"
+        return f"Token({self.type}, {self.val})"
 
-    def __repr__(self):
-        return self.__str__()
-
-    def __eq__(self, other):
-        return self.token_type == other.token.type
-
+# TODO: fix lexer so it can read char by char, and complete the tokenization process.
+# (read keywords like PUSH, POP, etc. properly)
 class Lexer:
-    def __init__(self, text: str):
-        self.text = open(text, 'r').read().split()
-        self.pos = 0
-        self.current_token = None
-        self.current_word = self.text[self.pos]
-
-    def get(self):
-        # find the current token.
-        return self.current_token
+    def __init__(self, src: str):
+        assert isfile(src) and access(src, R_OK), f"File {src} does not exist/is not readable."
+        with open(src, 'r') as file:
+            self.src = file.read() + '\n'
+        self.pos = -1
+        self.current_char = ''
+        self.advance()
 
     def peek(self):
-        # check the next character in text.
-        if self.pos + 1 < len(self.text):
-            return self.text[self.pos + 1]
-        return
+        # check the next character in src.
+        if self.pos + 1 < len(self.src):
+            return self.src[self.pos + 1]
+        else:
+            return '\0'
 
     def advance(self):
-        # move to the next character in text.
+        # move to the next character in src.
         self.pos += 1
-        if self.pos < len(self.text):
-            self.current_word = self.text[self.pos]
+        if self.pos < len(self.src):
+            self.current_char = self.src[self.pos]
         else:
-            self.current_word = None
+            self.current_char = '\0'
+
+    def word(self):
+        # traverse src for a word bounded together.
+        assert self.current_char.isalpha(), "Invalid word format."
+        start_pos = self.pos
+        while self.peek().isalpha():
+            self.advance()
+        self.advance()
+
+        return self.src[start_pos: self.pos]
+
+    def number(self):
+        # traverse src for a number bounded together.
+        assert self.current_char.isdigit(), "Invalid number format."
+        start_pos = self.pos
+        while self.peek().isdigit():
+            self.advance()
+            if self.peek() == '.':
+                self.advance()
+                if not self.peek().isdigit():
+                    raise ValueError("Invalid number format.")
+                while self.peek().isdigit():
+                    self.advance()
+                return float(self.src[start_pos: self.pos + 1])
+
+        self.advance()
+        return int(self.src[start_pos: self.pos + 1])
+
+    def skip_whitespace(self):
+        # skip all whitespace characters.
+        while self.current_char in [' ', '\n', '\t']:
+            self.advance()
+
+    def skip_comment(self):
+        # c-style commenting.
+        if self.current_char == '/' and self.peek() == '/':
+            while self.current_char != '\n':
+                self.advance()
 
     def get_token(self):
-        while self.current_word is not None:
-            if self.current_word.endswith(":"):
-                return Token(TokenType.START_IDENTIFIER, self.current_word[:-1])
-            elif self.current_word == ";":
-                return Token(TokenType.END_IDENTIFIER, ";")
-            elif self.current_word == "PUSH":
-                return Token(TokenType.PUSH, self.current_word)
-            elif self.current_word == "POP":
-                return Token(TokenType.POP, self.current_word)
-            elif self.current_word == "ADD":
-                return Token(TokenType.ADD, self.current_word)
-            elif self.current_word == "SUB":
-                return Token(TokenType.SUB, self.current_word)
-            elif self.current_word == "MUL":
-                return Token(TokenType.MUL, self.current_word)
-            elif self.current_word == "DIV":
-                return Token(TokenType.DIV, self.current_word)
-            elif self.current_word.isdigit():
-                return Token(TokenType.NUMBER, int(self.current_word))
-            raise Exception("Invalid word.")
 
-        return Token(TokenType.EOF, None)
+        ## tokenizer not working properly.
+        while self.current_char != '\0':
+            self.skip_whitespace()
+            self.skip_comment()
+            if self.current_char.isdigit():
+                num = self.number()
+                if isinstance(num, int):
+                    return Token(TokenType.INT, num)
+                return Token(TokenType.FLOAT, num)
 
 
-class Parser:
-    def __init__(self, lexer: Lexer):
-        self.lexer = lexer
-        self.current_token = Token(TokenType.NONE, None)
-        self.peek_token = Token(TokenType.NONE, None)
+                return Token(TokenType.NUMBER, self.number())
+            elif self.current_char.isalpha():
+                # check if keyword or operator, assume identifier by default.
+                word = self.word()
+                token_type = TokenType.IDENTIFIER
 
-        self.stack = []
+                match (word.upper()):
+                    case "PUSH":
+                        token_type = TokenType.PUSH
+                    case "POP":
+                        token_type = TokenType.POP
+                    case "DUP":
+                        token_type = TokenType.DUP
+                    case "SWAP":
+                        token_type = TokenType.SWAP
+                    case "OVER":
+                        token_type = TokenType.OVER
+                    case "ROT":
+                        token_type = TokenType.ROT
+                    case "EXCH":
+                        token_type = TokenType.EXCH
+                    case "ADD":
+                        token_type = TokenType.ADD
+                    case "SUB":
+                        token_type = TokenType.SUB
+                    case "MUL":
+                        token_type = TokenType.MUL
+                    case "DIV":
+                        token_type = TokenType.DIV
 
-        # initializes current and peek tokens.
-        self.advance()
-        self.advance()
+                # if word did not match any keyword, return identifier.
+                return Token(token_type, word)
 
-    def advance(self):
-        self.current_token = self.peek_token
-        self.peek_token = self.lexer.get_token()
-
-        self.lexer.advance()
-
-    def check_token(self, token_type: TokenType):
-        # checks if current token is of a given token type.
-        return self.current_token.token_type == token_type
-
-    def statement(self):
-
-        if self.check_token(TokenType.START_IDENTIFIER):
-            self.advance()
-
-        elif self.check_token(TokenType.END_IDENTIFIER):
-            self.advance()
-
-        elif self.check_token(TokenType.PUSH):
-            print("PUSHING ", end="")
-            self.advance()
-
-            if self.check_token(TokenType.NUMBER):
-                # push number to stack.
-                print(f"{self.current_token.value}")
-                self.stack.append(self.current_token.value)
-                self.advance()
             else:
-                raise Exception("Expected NUM after PUSH.")
+                # symbol handling. check if symbol is valid.
+                if self.current_char in ['(', ')', '{', '}', '&', '|']:
+                    match (self.current_char):
+                        case '(':
+                            return Token(TokenType.LPAREN, self.current_char)
+                        case ')':
+                            return Token(TokenType.RPAREN, self.current_char)
+                        case '{':
+                            return Token(TokenType.LBRACE, self.current_char)
+                        case '}':
+                            return Token(TokenType.RBRACE, self.current_char)
+                        case '[':
+                            return Token(TokenType.LBRACK, self.current_char)
+                        case ']':
+                            return Token(TokenType.RBRACK, self.current_char)
+                        case '&':
+                            return Token(TokenType.AND, self.current_char)
+                        case '|':
+                            return Token(TokenType.OR, self.current_char)
+                elif self.current_char == '-' and self.peek().isdigit():
+                    self.advance()
+                    return Token(TokenType.NEG, "-")
+                    #return Token(TokenType.NUMBER, -1 * self.number())
 
-        elif self.check_token(TokenType.POP):
-            self.advance()
+        return Token(TokenType.EOF, '')
 
-            if len(self.stack) == 0:
-                raise Exception("Stack is empty.")
-
-            print("POPPING", self.stack.pop())
-
-        elif self.check_token(TokenType.ADD):
-            self.advance()
-
-            if len(self.stack) == 1:
-                # if only one element in stack, op equivalent to adding to 0.
-                pass
-            elif len(self.stack) == 0:
-                raise Exception("Not enough elements in stack.")
-
-            elem1 = self.stack.pop()
-            elem2 = self.stack.pop()
-            self.stack.append(elem1 + elem2)
-
-            print(f"ADDING {elem1} and {elem2}")
-
-        else:
-            print(f"Statement not recognized: {self.current_token.value}")
-            self.advance()
-
-
-
-
-
-    def program(self):
-        while not self.check_token(TokenType.EOF):
-            self.statement()
 
 if __name__ == '__main__':
-    sun = Parser(Lexer("tomson.skt"))
+    sun = Lexer("tomson.skt")
 
-    sun.program()
+    while sun.current_char != '\0':
+        print(sun.get_token())
