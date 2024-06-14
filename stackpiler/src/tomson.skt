@@ -1,0 +1,6 @@
+MAIN:
+PUSH 12
+PUSH 2
+ADD
+POP
+;
