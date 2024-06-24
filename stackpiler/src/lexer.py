@@ -192,7 +192,7 @@ class Lexer:
 
                         case '+':
                             if self.peek().isdigit():
-                                token_type = TokenType.PLUS
+                                token_type = TokenType.POS
                                 #return Token(TokenType.NUMBER, self.number())
                             else:
                                 token_type = TokenType.ADD

@@ -1,5 +1,5 @@
-push 10 push 5
+push 10 push xyz 5 6 mul 2 add
+push pop
 // What a douche amirite
-ADD PUSH 15.2 mul // don't forget
-push 20 sub sub
-push xyz 5 push abc 233 add div pop
+push xyz 5 push abc 233 xyz add
+

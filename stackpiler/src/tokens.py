@@ -31,7 +31,7 @@ class TokenType(Enum):
 
     # operators
     # unary operators
-    PLUS = iota() # [+]a -- [a]
+    POS = iota() # [+]a -- [a]
     NEG = iota() # [-]a -- [-a]
 
     # binary operators

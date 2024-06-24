@@ -8,7 +8,7 @@ class Parser:
         self.current_token = Token(TokenType.NONE, None)
         self.peek_token = Token(TokenType.NONE, None)
 
-        self.symbols = {} # variables
+        self.symbols = {}
 
         self.stack = []
 
@@ -19,12 +19,6 @@ class Parser:
     def advance(self):
         self.current_token = self.peek_token
         self.peek_token = self.lexer.get_token()
-
-    def check_symbol(self, var):
-        # bool
-        if var in self.symbols.keys():
-            return True
-        return False
 
     def check_token(self, token_type: TokenType):
         # checks if current token is of a given token type.
@@ -41,31 +35,13 @@ class Parser:
 
     # expression parsing
 
-    # ((-1 -2 MUL) 3 ADD) > (5 6 ADD)
-
     def comparison(self):
-        # TODO: implement comparison properly.
-        assert False, "Comparison not implemented."
         # 5 < 6
-        c : bool = False
-        a = self.expression()
+        self.expression()
         if self.check_peek(TokenType.EQ) or self.check_peek(TokenType.NQ) or \
                 self.check_peek(TokenType.GT) or self.check_peek(TokenType.GQ) or \
                 self.check_peek(TokenType.LT) or self.check_peek(TokenType.LQ):
-
-            b = self.expression()
-            if self.check_token(TokenType.EQ):
-                c = a == b
-            elif self.check_token(TokenType.NQ):
-                c = a != b
-            elif self.check_token(TokenType.GT):
-                c = a > b
-            elif self.check_token(TokenType.GQ):
-                c = a >= b
-            elif self.check_token(TokenType.LT):
-                c = a < b
-            elif self.check_token(TokenType.LQ):
-                c = a <= b
+            self.expression()
             self.advance()
         else:
             raise ValueError(f"Expected comparison operator, but got: {self.peek_token.val}")
@@ -80,15 +56,14 @@ class Parser:
 
     def expression(self):
         # expression: term term (ADD | SUB)
-        print('expression->',end='')
+        print('expression')
         a = self.term()
         while self.check_peek(TokenType.ADD) or self.check_peek(TokenType.SUB):
             b = self.term()
 
-            print(f'in expr: {a}+{b}')
-            if self.check_token(TokenType.ADD):
+            if self.check_peek(TokenType.ADD):
                 a += b
-            elif self.check_token(TokenType.SUB):
+            elif self.check_peek(TokenType.SUB):
                 a -= b
 
             self.advance()
@@ -98,21 +73,18 @@ class Parser:
 
     def term(self):
         # term: factor factor (MUL | DIV | MOD)
-        print('term->',end='')
-        a = self.unary() # (0-1) + 1
+        print('term')
+        a = self.unary()
         while self.check_peek(TokenType.MUL) or \
                 self.check_peek(TokenType.DIV) or self.check_peek(TokenType.MOD):
             b = self.unary()
 
-            print(f'in term: {a}*{b}')
-            if self.check_token(TokenType.MUL):
+            if self.check_peek(TokenType.MUL):
                 a *= b
-            elif self.check_token(TokenType.DIV):
+            elif self.check_peek(TokenType.DIV):
                 a /= b
-            elif self.check_token(TokenType.MOD):
+            elif self.check_peek(TokenType.MOD):
                 a %= b
-            else:
-                print(self.peek_token)
             self.advance()
         return a
 
@@ -121,18 +93,21 @@ class Parser:
     def unary(self):
         # unary: [+] primary | [-] primary
         # optional. handles only numbers.
-        print('unary->',end='')
+        print('unary')
 
         sign = 1
-        if self.check_token(TokenType.POS):
+        if self.check_token(TokenType.PLUS):
             self.advance()
         elif self.check_token(TokenType.NEG):
             sign = -1
             self.advance()
         return sign * self.primary()
 
-
-    # 1
+    def check_symbol(self, var):
+        # bool
+        if var in self.symbols.keys():
+            return True
+        return False
 
     def primary(self):
         # primary: INT | FLOAT | IDENTIFIER
@@ -143,9 +118,9 @@ class Parser:
             self.advance()
             return value
         elif self.check_token(TokenType.IDENTIFIER):
-            # variable cannot be defined within an expression.
             if not self.check_symbol(self.current_token.val):
                 raise ValueError(f"Var referenced before assignment: {self.current_token.val}")
+            value = self.symbols[self.current_token.val]
             self.advance()
             return value
         else:
@@ -167,7 +142,7 @@ class Parser:
                         del self.symbols[last]
                     else:
                         print(last)
-                """
+
             case TokenType.PUSH:
                 print("PUSH")
                 self.advance()
@@ -193,27 +168,6 @@ class Parser:
                     self.advance()
                 else:
                     raise ValueError(f"Expected number, but got: {self.current_token.val}")
-                """
-            case TokenType.PUSH:
-                print("PUSH")
-                self.advance()
-
-                if self.check_token(TokenType.POP):
-                    # mechanic that pushes the latest element to the top of the stack.
-                    self.stack.insert(0,self.stack.pop())
-                    self.advance()
-                    return
-
-                name = ''
-                if self.check_token(TokenType.IDENTIFIER):
-                    name = self.current_token.val
-                    self.advance()
-
-                if name:
-                    self.symbols[name] = self.expression()
-                    self.stack.append(name)
-                else:
-                    self.stack.append(self.expression())
 
             case TokenType.ADD:
                 print("ADD")
@@ -293,7 +247,7 @@ class Parser:
                 if self.check_token(TokenType.NEG):
                     num = -1
                     self.advance()
-                elif self.check_token(TokenType.POS):
+                elif self.check_token(TokenType.PLUS):
                     self.advance()
 
                 if self.check_token(TokenType.FLOAT) or self.check_token(TokenType.INT):
