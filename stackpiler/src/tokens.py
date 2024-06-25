@@ -48,7 +48,8 @@ class TokenType(Enum):
     ### expression
     ###
 
-    NOT = iota() # z [!] = not Z
+    NOT = iota() # [!]z = not z
+
     AND = iota() # y z [&] = y and z
     OR = iota()  # y z [|] = y or z
 
@@ -62,6 +63,8 @@ class TokenType(Enum):
     # types
     INT = iota() # [0-9] # dynamically typed from numbers. can be explicitly casted.
     FLOAT = iota() # [0-9].[0-9]. implicit, but can be explicitly casted.
+    ARR = iota() # []. dynamic array.
+    STR = iota() # "[a-zA-Z0-9 ]" # explicit cast with ""
 
     VAR = iota() # var IDENTIFIER
     FUNC = iota() # func IDENTIFIER block end
