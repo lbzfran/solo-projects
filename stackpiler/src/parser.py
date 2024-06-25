@@ -11,7 +11,6 @@ class Parser:
         self.symbols = {} # variables
 
         self.stack = []
-        self.op = []
 
         # initializes current and peek tokens.
         self.advance()
@@ -43,7 +42,7 @@ class Parser:
     # expression parsing
 
     # 1
-        """
+
     def primary(self):
         # primary: INT | FLOAT | IDENTIFIER | NONE
         print('primary')
@@ -58,7 +57,6 @@ class Parser:
         return value
 
     # -1
-
     def factor(self):
         # factor: [+] primary | [-] primary | [(] expression [)]
         # optional. handles only numbers.
@@ -108,6 +106,7 @@ class Parser:
             self.advance()
         return a
 
+    """
     # (-1 -2 MUL) 3 ADD
 
     def old_expression(self):
@@ -204,9 +203,11 @@ class Parser:
                         self.stack.append(self.factor())
             elif self.check_token(TokenType.IDENTIFIER):
                 if self.check_symbol(self.current_token.val):
+                    print('symbol')
                     self.stack.append(self.current_token.val)
+                    self.advance()
                 else:
-                    raise ValueError(f"Var referenced before assignment: {self.current_token.val}")
+                    raise ValueError(f"variable referenced before assignment: {self.current_token.val}")
             elif self.check_token(TokenType.ADD) or self.check_token(TokenType.SUB) or \
                     self.check_token(TokenType.MUL) or self.check_token(TokenType.DIV) or \
                     self.check_token(TokenType.MOD):
@@ -226,7 +227,11 @@ class Parser:
                     case TokenType.MOD:
                         #self.op.append(TokenType.MOD)
                         self.statement(TokenType.MOD)
+            else:
+                print(self.current_token)
         self.match_token(TokenType.END)
+
+        return self.stack.pop()
 
 
     def statement(self, token = None):
@@ -241,7 +246,6 @@ class Parser:
 
                     if last in self.symbols:
                         print(self.symbols[last])
-                        del self.symbols[last]
                     else:
                         print(last)
                 """
@@ -281,7 +285,7 @@ class Parser:
                     self.advance()
                     return
 
-                self.expression()
+                self.stack.append(self.expression())
 
             case TokenType.ADD:
                 print("ADD")
@@ -368,24 +372,14 @@ class Parser:
                     raise ValueError("Not enough elements in stack.")
 
             case TokenType.VAR:
-                # creates a variable, but does not push it to the stack.
+                # creates a variable that can be referenced and pushed to the stack.
+                print("VAR")
                 self.advance()
 
                 name = self.current_token.val
                 self.match_token(TokenType.IDENTIFIER)
 
-                num = 1
-                if self.check_token(TokenType.NEG):
-                    num = -1
-                    self.advance()
-                elif self.check_token(TokenType.POS):
-                    self.advance()
-
-                if self.check_token(TokenType.FLOAT) or self.check_token(TokenType.INT):
-                    self.symbols[name] = num * self.current_token.val
-                    self.advance()
-                else:
-                    raise ValueError(f"Expected number, but got: {self.current_token.val}")
+                self.symbols[name] = self.expression()
 
             case TokenType.IF:
                 print("IF")
