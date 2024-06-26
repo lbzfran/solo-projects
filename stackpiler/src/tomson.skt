@@ -1,8 +1,8 @@
 // test
-push ( 5 1 add end) 1 mul 2 mul 3
-mul 4 mul end
-var xz 5 1 add end
-push xz end
+push (5 1 add;) (5 1 sub;) mul 2 mul 3
+mul 4 mul;
+var xz 5 1 add;
+push xz;
 add
-pop
+dup push 2; swap over rot
 

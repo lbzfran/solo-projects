@@ -11,6 +11,7 @@ class Lexer:
         self.current_char = ''
         self.advance()
 
+    @property
     def peek(self):
         # check the next character in src.
         if self.pos + 1 < len(self.src):
@@ -26,13 +27,18 @@ class Lexer:
         else:
             self.current_char = '\0'
 
+    def protected(self, char: str):
+        if char in ['(', ')', '{', '}', '[', ']', ';']:
+            return True
+        return False
+
     def word(self):
         # traverse src for a word bounded together.
-        assert self.current_char.isalpha() or self.peek() == '_', "Invalid word format."
+        assert self.current_char.isalpha() or self.peek == '_', "Invalid word format."
         start_pos = self.pos
-        while self.peek().isalpha() or self.peek().isdigit() or self.peek() == '_':
+        while self.peek.isalpha() or self.peek.isdigit() or self.peek == '_':
             self.advance()
-            if self.peek() in [')', '(','{', '}', '[', ']']:
+            if self.protected(self.peek):
                 # protected symbols; cannot be part of a word.
                 break
         self.advance()
@@ -43,18 +49,28 @@ class Lexer:
         # traverse src for a number bounded together.
         assert self.current_char.isdigit(), "Invalid number format."
         start_pos = self.pos
-        while self.peek().isdigit():
+        if self.protected(self.peek):
+            # protected symbols; cannot be part of a num.
+            # essentially skips advancing if ';' is next so it can be tokenized on its own.
+            return int(self.src[start_pos: self.pos+1])
+        while self.peek.isdigit():
             self.advance()
-            if self.peek() == '.':
+            if self.protected(self.peek):
+                # protected symbols; cannot be part of a num.
+                return int(self.src[start_pos: self.pos])
+            if self.peek == '.':
                 self.advance()
-                if not self.peek().isdigit():
-                    raise ValueError("Invalid number format.")
-                while self.peek().isdigit():
+                if not self.peek.isdigit():
+                    raise ValueError("Invalid number format: expected digit after '.'")
+                while self.peek.isdigit():
                     self.advance()
-                return float(self.src[start_pos: self.pos + 1])
+                    if self.protected(self.peek):
+                        # protected symbols; cannot be part of a word.
+                        break
+                return float(self.src[start_pos: self.pos+1])
 
         self.advance()
-        return int(self.src[start_pos: self.pos + 1])
+        return int(self.src[start_pos: self.pos+1])
 
     def skip_whitespace(self):
         # skip all whitespace characters.
@@ -63,7 +79,7 @@ class Lexer:
 
     def skip_comment(self):
         # c-style commenting.
-        if self.current_char == '/' and self.peek() == '/':
+        if self.current_char == '/' and self.peek == '/':
             while self.current_char != '\n':
                 self.advance()
 
@@ -146,7 +162,7 @@ class Lexer:
             else:
                 # symbol handling. check if symbol is valid.
                 symbol = self.current_char
-                if symbol in ['(', ')', '{', '}', '&', '|', '=', '!', '>', '<'] \
+                if symbol in ['(', ')', '{', '}', '&', '|', '=', '!', '>', '<', ';'] \
                         or symbol in ['+', '-', '*', '/']:
                     match (symbol):
                         case '(':
@@ -162,6 +178,9 @@ class Lexer:
                         case ']':
                             token_type = TokenType.RBRACK
 
+                        case ';':
+                            token_type = TokenType.END
+
 
                         case '&':
                             token_type = TokenType.AND
@@ -172,21 +191,21 @@ class Lexer:
                         case '=':
                             token_type = TokenType.EQ
                         case '!':
-                            if self.peek() == '=':
+                            if self.peek == '=':
                                 token_type = TokenType.NQ
                                 self.advance()
                                 symbol += '='
                             else:
                                 token_type = TokenType.NOT
                         case '>':
-                            if self.peek() == '=':
+                            if self.peek == '=':
                                 token_type = TokenType.GQ
                                 self.advance()
                                 symbol += '='
                             else:
                                 token_type = TokenType.GT
                         case '<':
-                            if self.peek() == '=':
+                            if self.peek == '=':
                                 token_type = TokenType.LQ
                                 self.advance()
                                 symbol += '='
@@ -194,13 +213,13 @@ class Lexer:
                                 token_type = TokenType.LT
 
                         case '+':
-                            if self.peek().isdigit():
+                            if self.peek.isdigit():
                                 token_type = TokenType.POS
                                 #return Token(TokenType.NUMBER, self.number())
                             else:
                                 token_type = TokenType.ADD
                         case '-':
-                            if self.peek().isdigit():
+                            if self.peek.isdigit():
                                 token_type = TokenType.NEG
                                 #return Token(TokenType.NUMBER, -1 * self.number())
                             else:
@@ -218,7 +237,7 @@ class Lexer:
                     self.advance()
                     return Token(token_type, symbol)
 
-                elif symbol in [' ', '\n', '\t'] or symbol == '/' and self.peek() == '/':
+                elif symbol in [' ', '\n', '\t'] or symbol == '/' and self.peek == '/':
                     continue
 
                 elif symbol == '\0':
