@@ -76,130 +76,13 @@ class Parser:
             self.advance()
         return sign * self.primary()
 
-    # -1 -2 MUL.
-
-    def term(self):
-        # term: factor (factor [MUL | DIV | MOD])
-        print('term->',end='')
-        a = self.factor() # 1 -2 mul
-
-        if self.check_token(TokenType.POS) or self.check_token(TokenType.NEG) or self.check_token(TokenType.LPAREN) or \
-            self.check_peek(TokenType.MUL) or self.check_peek(TokenType.DIV) or self.check_peek(TokenType.MOD):
-            # guaranteed factor if sign/lparen is present.
-            # also guaranteed if next token is a valid operator (mul/div/mod).
-            b = self.factor()
-
-        while self.check_peek(TokenType.MUL) or \
-                self.check_peek(TokenType.DIV) or self.check_peek(TokenType.MOD):
-
-            b = self.factor()
-            print(f'in term: {a}*{b}')
-            if self.check_token(TokenType.MUL):
-                a *= b
-            elif self.check_token(TokenType.DIV):
-                a /= b
-            elif self.check_token(TokenType.MOD):
-                a %= b
-            else:
-                print(self.peek_token)
-
-            self.advance()
-        return a
-
-    """
-    # (-1 -2 MUL) 3 ADD
-
-    def old_expression(self):
-        # expression: term (term [ADD | SUB])
-        print('expression->',end='')
-        a = self.term()
-        while self.check_peek(TokenType.ADD) or self.check_peek(TokenType.SUB):
-            b = self.term()
-
-            print(f'in expr: {a}+{b}')
-            if self.check_token(TokenType.ADD):
-                a += b
-            elif self.check_token(TokenType.SUB):
-                a -= b
-
-            self.advance()
-        return a
-    def comparison(self) -> bool:
-        # 5 < 6
-        a = self.expression()
-        if self.check_peek(TokenType.EQ) or self.check_peek(TokenType.NQ) or \
-                self.check_peek(TokenType.GT) or self.check_peek(TokenType.GQ) or \
-                self.check_peek(TokenType.LT) or self.check_peek(TokenType.LQ):
-            b = self.expression()
-
-            match (self.current_token.type):
-                case TokenType.EQ:
-                    a = a == b
-                case TokenType.NQ:
-                    a = a != b
-                case TokenType.GT:
-                    a = a > b
-                case TokenType.GQ:
-                    a = a >= b
-                case TokenType.LT:
-                    a = a < b
-                case TokenType.LQ:
-                    a = a <= b
-            self.advance()
-        else:
-            raise ValueError(f"Expected comparison operator, but got: {self.peek_token.val}")
-
-        while self.check_peek(TokenType.EQ) or self.check_peek(TokenType.NQ) or \
-                self.check_peek(TokenType.GT) or self.check_peek(TokenType.GQ) or \
-                self.check_peek(TokenType.LT) or self.check_peek(TokenType.LQ):
-            b = self.expression()
-
-            match (self.current_token.type):
-                case TokenType.EQ:
-                    a = a == b
-                case TokenType.NQ:
-                    a = a != b
-                case TokenType.GT:
-                    a = a > b
-                case TokenType.GQ:
-                    a = a >= b
-                case TokenType.LT:
-                    a = a < b
-                case TokenType.LQ:
-                    a = a <= b
-            self.advance()
-
-        if self.check_token(TokenType.NOT):
-            self.advance()
-            return not a
-        return a
-
-    # ((-1 -2 MUL) 3 ADD) > (5 6 ADD)
-
-    def boolean(self) -> bool:
-        # comparison (AND | OR) comparison
-        a = self.comparison()
-
-        # x y and z or a and b
-
-        while self.check_peek(TokenType.AND) or self.check_peek(TokenType.OR):
-            b = self.comparison()
-
-            match (self.current_token.type):
-                case TokenType.AND:
-                    a = a and b
-                case TokenType.OR:
-                    a = a or b
-            self.advance()
-        return a
-        """
-
     def expression(self):
         print('expression->',end='')
 
         while not self.check_token(TokenType.END):
             if self.check_token(TokenType.INT) or self.check_token(TokenType.FLOAT) or \
-                    self.check_token(TokenType.POS) or self.check_token(TokenType.NEG):
+                    self.check_token(TokenType.POS) or self.check_token(TokenType.NEG) or \
+                    self.check_token(TokenType.LPAREN):
                         self.stack.append(self.factor())
             elif self.check_token(TokenType.IDENTIFIER):
                 if self.check_symbol(self.current_token.val):
@@ -208,27 +91,14 @@ class Parser:
                     self.advance()
                 else:
                     raise ValueError(f"variable referenced before assignment: {self.current_token.val}")
-            elif self.check_token(TokenType.ADD) or self.check_token(TokenType.SUB) or \
-                    self.check_token(TokenType.MUL) or self.check_token(TokenType.DIV) or \
-                    self.check_token(TokenType.MOD):
-                match (self.current_token.type):
-                    case TokenType.ADD:
-                        #self.op.append(TokenType.ADD)
-                        self.statement(TokenType.ADD)
-                    case TokenType.SUB:
-                        #self.op.append(TokenType.SUB)
-                        self.statement(TokenType.SUB)
-                    case TokenType.MUL:
-                        #self.op.append(TokenType.MUL)
-                        self.statement(TokenType.MUL)
-                    case TokenType.DIV:
-                        #self.op.append(TokenType.DIV)
-                        self.statement(TokenType.DIV)
-                    case TokenType.MOD:
-                        #self.op.append(TokenType.MOD)
-                        self.statement(TokenType.MOD)
+            elif self.current_token.type in [TokenType.ADD, TokenType.SUB,
+                                             TokenType.MUL, TokenType.DIV, TokenType.MOD,
+                                             TokenType.EQ, TokenType.NQ, TokenType.GT,
+                                             TokenType.GQ, TokenType.LT, TokenType.LQ,
+                                             ]:
+                self.statement(self.current_token.type)
             else:
-                print(self.current_token)
+                print(f"no handling found for {self.current_token} within expression.")
         self.match_token(TokenType.END)
 
         return self.stack.pop()
@@ -248,33 +118,7 @@ class Parser:
                         print(self.symbols[last])
                     else:
                         print(last)
-                """
-            case TokenType.PUSH:
-                print("PUSH")
-                self.advance()
 
-                name = ''
-                if self.check_token(TokenType.IDENTIFIER):
-                    name = self.current_token.val
-                    self.advance()
-
-                num = 1
-                if self.check_token(TokenType.NEG):
-                    num = -1
-                    self.advance()
-                elif self.check_token(TokenType.PLUS):
-                    self.advance()
-
-                if self.check_token(TokenType.INT) or self.check_token(TokenType.FLOAT):
-                    if name:
-                        self.symbols[name] = num * self.current_token.val
-                        self.stack.append(name)
-                    else:
-                        self.stack.append(num * self.current_token.val)
-                    self.advance()
-                else:
-                    raise ValueError(f"Expected number, but got: {self.current_token.val}")
-                """
             case TokenType.PUSH:
                 print("PUSH")
                 self.advance()
@@ -286,6 +130,52 @@ class Parser:
                     return
 
                 self.stack.append(self.expression())
+
+            case TokenType.DUP:
+                print("DUP")
+                self.advance()
+
+                if len(self.stack) > 0:
+                    self.stack.append(self.stack[-1])
+                else:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.SWAP:
+                print("SWAP")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+
+                    self.stack.append(a)
+                    self.stack.append(b)
+                else:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.OVER:
+                print("OVER")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    self.stack.append(self.stack[-2])
+                else:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.ROT:
+                print("ROT")
+                self.advance()
+
+                if len(self.stack) >= 3:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+                    c = self.stack.pop()
+
+                    self.stack.append(b)
+                    self.stack.append(c)
+                    self.stack.append(a)
+                else:
+                    raise ValueError("Not enough elements in stack.")
 
             case TokenType.ADD:
                 print("ADD")
@@ -305,6 +195,7 @@ class Parser:
                     raise ValueError("Not enough elements in stack.")
 
             case TokenType.SUB:
+                print("SUB")
                 self.advance()
 
                 if len(self.stack) >= 2:
@@ -371,6 +262,7 @@ class Parser:
                 elif len(self.stack) < 1:
                     raise ValueError("Not enough elements in stack.")
 
+
             case TokenType.VAR:
                 # creates a variable that can be referenced and pushed to the stack.
                 print("VAR")
@@ -380,6 +272,82 @@ class Parser:
                 self.match_token(TokenType.IDENTIFIER)
 
                 self.symbols[name] = self.expression()
+
+            case TokenType.FUNC:
+                print("FUNC")
+                assert False, "Not implemented"
+
+            case TokenType.EQ:
+                print("EQ")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+
+                    self.stack.append(a == b)
+                elif len(self.stack) < 1:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.NQ:
+                print("NQ")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+
+                    self.stack.append(a != b)
+                elif len(self.stack) < 1:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.GT:
+                print("EQ")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+
+                    self.stack.append(a > b)
+                elif len(self.stack) < 1:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.GQ:
+                print("NQ")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+
+                    self.stack.append(a >= b)
+                elif len(self.stack) < 1:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.LT:
+                print("EQ")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+
+                    self.stack.append(a < b)
+                elif len(self.stack) < 1:
+                    raise ValueError("Not enough elements in stack.")
+
+            case TokenType.LQ:
+                print("NQ")
+                self.advance()
+
+                if len(self.stack) >= 2:
+                    a = self.stack.pop()
+                    b = self.stack.pop()
+
+                    self.stack.append(a <= b)
+                elif len(self.stack) < 1:
+                    raise ValueError("Not enough elements in stack.")
 
             case TokenType.IF:
                 print("IF")
@@ -392,13 +360,17 @@ class Parser:
                         self.advance()
                 self.advance()
 
+            case TokenType.WHILE:
+                print("WHILE")
+                # first instance of looping.
+                assert False, "Not implemented"
+
             case _:
                 raise ValueError(f"Statement not recognized: {self.current_token}")
 
 
 
     def program(self):
-
         # parse all statements in program.
         while not self.check_token(TokenType.EOF):
             self.statement()

@@ -24,7 +24,6 @@ statement =
     | (POP | DUP | SWAP | OVER | ROT | EXCH)
     | (ADD | SUB | MUL | DIV | MOD)
 comparison = expression expression (== | != | < | > | <= | >=)
-expression = term term ( ADD | SUB )
-term = factor factor ( MUL | DIV | MOD )
-unary = ( POS | NEG ) primary
+expression = term term ( ADD | SUB | MUL | DIV | MOD )
+factor = ( POS | NEG ) primary
 primary = INT | FLOAT | IDENTIFIER

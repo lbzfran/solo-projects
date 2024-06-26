@@ -32,6 +32,9 @@ class Lexer:
         start_pos = self.pos
         while self.peek().isalpha() or self.peek().isdigit() or self.peek() == '_':
             self.advance()
+            if self.peek() in [')', '(','{', '}', '[', ']']:
+                # protected symbols; cannot be part of a word.
+                break
         self.advance()
 
         return self.src[start_pos: self.pos]
@@ -137,7 +140,7 @@ class Lexer:
                         token_type = TokenType.DO
 
                 # if word did not match any keyword, return identifier.
-                self.advance()
+                #self.advance()
                 return Token(token_type, word)
 
             else:

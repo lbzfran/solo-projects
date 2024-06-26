@@ -19,7 +19,6 @@ class TokenType(Enum):
     SWAP = iota() # a b -- b a
     OVER = iota() # a b -- a b a
     ROT = iota()  # a b c -- b c a
-    EXCH = iota() # a b -- b a
 
     # control flow
     LBRACE = iota() # { -- func block. implicit
@@ -61,6 +60,7 @@ class TokenType(Enum):
     LQ = iota() # a b [<=] = a <= b
 
     # types
+    BOOL = iota() # [true, false] # derived from comparisons.
     INT = iota() # [0-9] # dynamically typed from numbers. can be explicitly casted.
     FLOAT = iota() # [0-9].[0-9]. implicit, but can be explicitly casted.
     ARR = iota() # []. dynamic array.
