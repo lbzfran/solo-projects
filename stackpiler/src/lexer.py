@@ -28,7 +28,7 @@ class Lexer:
             self.current_char = '\0'
 
     def protected(self, char: str):
-        if char in ['(', ')', '{', '}', '[', ']', ';']:
+        if char in ['(', ')', '{', '}', '[', ']', ';', '"', "'"]:
             return True
         return False
 
@@ -45,31 +45,67 @@ class Lexer:
 
         return self.src[start_pos: self.pos]
 
+    def char(self):
+        # traverse src for a character bounded together.
+        assert self.current_char == "'", "Invalid char format."
+        self.advance() # skip first '
+        start_pos = self.pos
+        if self.current_char in ['\\']:
+            self.advance()
+            if not self.current_char in ['n', 't', 'r', '0', "'", '"', '\\']:
+                raise ValueError(f"Invalid escape character: {self.current_char}")
+        self.advance()
+        return self.src[start_pos: self.pos]
+
+    def string(self):
+        # traverse src for a string bounded together.
+        assert self.current_char == '"', "Invalid string format."
+        self.advance()
+        start_pos = self.pos
+        while self.current_char != '"':
+            self.advance()
+        self.advance()
+
+        # removes quotes.
+        return self.src[start_pos: self.pos-1]
+
     def number(self):
         # traverse src for a number bounded together.
         assert self.current_char.isdigit(), "Invalid number format."
+
         start_pos = self.pos
         if self.protected(self.peek):
             # protected symbols; cannot be part of a num.
             # essentially skips advancing if ';' is next so it can be tokenized on its own.
             return int(self.src[start_pos: self.pos+1])
+
+        if self.peek == '.':
+
+            self.advance()
+            if not self.peek.isdigit():
+                raise ValueError("Invalid number format: expected digit after '.'")
+
+            while self.peek.isdigit():
+                self.advance()
+            return float(self.src[start_pos: self.pos+1])
+
         while self.peek.isdigit():
+
             self.advance()
             if self.protected(self.peek):
                 # protected symbols; cannot be part of a num.
                 return int(self.src[start_pos: self.pos])
+
             if self.peek == '.':
+
                 self.advance()
                 if not self.peek.isdigit():
                     raise ValueError("Invalid number format: expected digit after '.'")
+
                 while self.peek.isdigit():
                     self.advance()
-                    if self.protected(self.peek):
-                        # protected symbols; cannot be part of a word.
-                        break
                 return float(self.src[start_pos: self.pos+1])
 
-        self.advance()
         return int(self.src[start_pos: self.pos+1])
 
     def skip_whitespace(self):
@@ -150,10 +186,17 @@ class Lexer:
                         token_type = TokenType.IF
                     case "ELSE":
                         token_type = TokenType.ELSE
+                    case "FI":
+                        token_type = TokenType.FI
                     case "WHILE":
                         token_type = TokenType.WHILE
                     case "DO":
                         token_type = TokenType.DO
+
+                    case "TRUE":
+                        token_type = TokenType.BOOL
+                    case "FALSE":
+                        token_type = TokenType.BOOL
 
                 # if word did not match any keyword, return identifier.
                 #self.advance()
@@ -162,7 +205,7 @@ class Lexer:
             else:
                 # symbol handling. check if symbol is valid.
                 symbol = self.current_char
-                if symbol in ['(', ')', '{', '}', '&', '|', '=', '!', '>', '<', ';'] \
+                if symbol in ['(', ')', '{', '}', '&', '|', '=', '!', '>', '<', ';', "'" ,'"'] \
                         or symbol in ['+', '-', '*', '/']:
                     match (symbol):
                         case '(':
@@ -228,6 +271,12 @@ class Lexer:
                             token_type = TokenType.MUL
                         case '/':
                             token_type = TokenType.DIV
+                        case "'":
+                            token_type = TokenType.CHAR
+                            symbol = self.char()
+                        case '"':
+                            token_type = TokenType.STR
+                            symbol = self.string()
 
                     self.advance()
                     return Token(token_type, symbol)

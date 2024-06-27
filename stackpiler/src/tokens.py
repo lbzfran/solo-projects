@@ -27,6 +27,8 @@ class TokenType(Enum):
     RPAREN = iota() # )
     LBRACK = iota() # [ -- list
     RBRACK = iota() # ]
+    #SQUOTE = iota() # ' -- single quotes
+    #DQUOTE = iota() # " -- double quotes
 
     # operators
     # unary operators
@@ -64,16 +66,18 @@ class TokenType(Enum):
     INT = iota() # [0-9] # dynamically typed from numbers. can be explicitly casted.
     FLOAT = iota() # [0-9].[0-9]. implicit, but can be explicitly casted.
     ARR = iota() # []. dynamic array.
+    CHAR = iota()
     STR = iota() # "[a-zA-Z0-9 ]" # explicit cast with ""
 
     VAR = iota() # var IDENTIFIER
     FUNC = iota() # func IDENTIFIER block end
     END = iota() # end of block declaration. used by: func, if/else, while/do
 
-    IF = iota() # if (condition) block end
+    IF = iota() # if (condition) (statement) else (statement) fi
     ELSE = iota() # else block end
+    FI = iota() # end of if block.
 
-    WHILE = iota() # while (condition) block end
+    WHILE = iota() # while (condition) (statement) end
     DO = iota() # do block while (condition) end. implicit if while comes first.
 
     IDENTIFIER = iota() # [a-zA-Z] # variable or function name.
