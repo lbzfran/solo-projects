@@ -54,92 +54,33 @@ class Parser:
 
     # 1
 
-    def primary(self, tokens = None, idx = None):
-        # primary: INT | FLOAT | IDENTIFIER | NONE
-        print('primary')
-        value = None
-        if not tokens:
-            if self.check_token(TokenType.INT) or self.check_token(TokenType.FLOAT):
-                value = self.current_token.val
 
-            elif self.check_token(TokenType.IDENTIFIER):
-                # variable cannot be defined within an expression.
-                if not self.check_symbol(self.current_token.val):
-                    raise ValueError(f"Var referenced before assignment: {self.current_token.val}")
-                value = self.symbols[self.current_token.val]
+    def factor(self, statements = None):
+        if not statements:
+            advance = self.advance
+        print('factor')
 
-            elif self.check_token(TokenType.STR) or self.check_token(TokenType.CHAR):
-                value = self.current_token.val
+        if self.check_token(TokenType.LPAREN):
             self.advance()
+            x = self.expression()
+            self.match_token(TokenType.RPAREN)
+            return x
 
+        elif self.check_token(TokenType.POS):
+            self.advance()
+            return self.factor()
+        elif self.check_token(TokenType.NEG):
+            self.advance()
+            return -self.factor()
 
-
-        else:
-            # running on a local stack.
-            print(f'primary on idx: {idx}')
-            if self.check_token(TokenType.INT, tokens[idx]) or self.check_token(TokenType.FLOAT, tokens[idx]):
-                value = tokens[idx].val
-
-            elif self.check_token(TokenType.IDENTIFIER, tokens[idx]):
-                # variable cannot be defined within an expression.
-                print(tokens[idx].val)
-
-                if not self.check_symbol(tokens[idx].val):
-                    raise ValueError(f"Var referenced before assignment: {tokens[idx].val}")
-                value = self.symbols[tokens[idx].val]
-
-            elif self.check_token(TokenType.STR, tokens[idx]) or self.check_token(TokenType.CHAR, tokens[idx]):
-                value = tokens[idx].val
-            idx += 1
-            return value, idx
-        return value
-
+        elif self.check_token(TokenType.INT) or self.check_token(TokenType.FLOAT):
+            return self.current_token.val
+        elif self.check_token(TokenType.IDENTIFIER):
+            if self.check_symbol(self.current_token.val):
+                return self.symbols[self.current_token.val]
+            else:
+                raise ValueError(f"variable referenced before assignment: {self.current_token.val}")
     # -1
-    def factor(self, tokens = None, idx = None):
-        # factor: [+] primary | [-] primary | [(] expression [)]
-        # optional. handles only numbers.
-        print('factor->',end='')
-
-        if not tokens:
-            if self.check_token(TokenType.LPAREN):
-                self.advance()
-                x = self.expression()
-                self.match_token(TokenType.RPAREN)
-                return x
-
-
-            sign = 1
-            if self.check_token(TokenType.POS):
-                self.advance()
-            elif self.check_token(TokenType.NEG):
-                sign = -1
-                self.advance()
-
-            # string handling
-            if self.check_token(TokenType.STR):
-                return self.primary()
-            return sign * self.primary()
-
-
-        else:
-            # running on a local stack.
-            if self.check_token(TokenType.LPAREN, tokens[idx]):
-                idx += 1
-                _, idx = self.expression(tokens, idx)
-                idx += 1
-
-            sign = 1
-            if self.check_token(TokenType.POS, tokens[idx]):
-                idx += 1
-            elif self.check_token(TokenType.NEG, tokens[idx]):
-                sign = -1
-                idx += 1
-
-            # string handling
-            if self.check_token(TokenType.STR, tokens[idx]):
-                return self.primary(tokens, idx)
-            x, idx = self.primary(tokens, idx)
-            return sign * x, idx
 
     def expression(self, tokens = None, jdx = None):
         print('expression->',end='')
@@ -207,6 +148,7 @@ class Parser:
         return self.stack.pop()
 
     def snippet(self, tokens):
+        # runs a snippet of tokens as an expression statement.
         local_tokens = tokens.copy()
         x = self.expression(local_tokens)
         print(x)
@@ -523,57 +465,36 @@ class Parser:
             case TokenType.IF:
                 print("IF")
                 self.advance()
-                if self.comparison():
+                else_found = False
+                if self.expression():
                     while not self.check_token(TokenType.FI):
+                        if self.check_token(TokenType.ELSE):
+                            else_found = True
+
+                        if else_found:
+                            self.advance()
+                            continue
                         self.statement()
+
                 else:
-                    while not self.check_token(TokenType.FI) and not self.check_token(TokenType.ELSE):
-                        self.advance()
-                    if self.check_token(TokenType.ELSE):
-                        self.advance()
-                        while not self.check_token(TokenType.FI):
+                    while not self.check_token(TokenType.FI):
+                        if self.check_token(TokenType.ELSE):
+                            else_found = True
+
+                        if else_found:
                             self.statement()
+                            continue
+                        self.advance()
                 self.advance()
-
-            case TokenType.WHILE:
-                print("WHILE")
-                # first instance of looping.
-                # TODO: some ideas; maybe save all tokens inside loop, and reparse them.
-
-                self.advance()
-
-
-                # loop through condition until it returns false.
-                condition = []
-                self.match_token(TokenType.LPAREN)
-                while not self.check_token(TokenType.RPAREN):
-                    condition.append(self.current_token)
-                    self.advance()
-                self.match_token(TokenType.RPAREN)
-
-                print([x.val for x in condition])
-
-                while self.snippet(condition):
-                    print('while->',end='')
-
-                    # for testing only
-                    self.symbols['y'] += 1
-
-               #if self.snippet(condition):
-               #    statement_loop = []
-               #    while not self.check_token(TokenType.END):
-               #        statement_loop.append(self.current_token)
-               #        self.advance()
-
-               #    print(statement_loop)
-               #    assert False, "Not implemented"
-               #    while self.snippet(condition):
-               #        for token in statement_loop:
-               #            self.statement(token)
 
             case _:
                 raise ValueError(f"Statement not recognized: {self.current_token}")
 
+    def state_loop(self, tokens):
+        # run statements on a local stack.
+
+        for token in tokens:
+            self.statement(token)
 
 
     def program(self, show_stack = False):

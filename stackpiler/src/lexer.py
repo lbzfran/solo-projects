@@ -139,7 +139,7 @@ class Lexer:
             elif self.current_char.isalpha():
                 # check if keyword or operator, assume identifier by default.
                 word = self.word()
-                token_type = TokenType.IDENTIFIER
+                token_type = TokenType.ID
 
                 match (word.upper()):
                     case "RET":
@@ -156,8 +156,6 @@ class Lexer:
                         token_type = TokenType.OVER
                     case "ROT":
                         token_type = TokenType.ROT
-                    case "EXCH":
-                        token_type = TokenType.EXCH
 
                     case "ADD":
                         token_type = TokenType.ADD
@@ -175,8 +173,15 @@ class Lexer:
                     case "OR":
                         token_type = TokenType.OR
 
-                    case "VAR":
+                    case "BOOL":
                         token_type = TokenType.VAR
+                    case "INT":
+                        token_type = TokenType.VAR
+                    case "FLOAT":
+                        token_type = TokenType.VAR
+                    case "STR":
+                        token_type = TokenType.VAR
+
                     case "FUNC":
                         token_type = TokenType.FUNC
                     case "END":
@@ -193,10 +198,9 @@ class Lexer:
                     case "DO":
                         token_type = TokenType.DO
 
-                    case "TRUE":
-                        token_type = TokenType.BOOL
-                    case "FALSE":
-                        token_type = TokenType.BOOL
+                    case _:
+                        if word in ('true', 'false'):
+                            token_type = TokenType.BOOL
 
                 # if word did not match any keyword, return identifier.
                 #self.advance()
@@ -205,7 +209,7 @@ class Lexer:
             else:
                 # symbol handling. check if symbol is valid.
                 symbol = self.current_char
-                if symbol in ['(', ')', '{', '}', '&', '|', '=', '!', '>', '<', ';', "'" ,'"'] \
+                if symbol in ['(', ')', '{', '}', '&', '|', '=', '!', '>', '<', ':', ';', "'" ,'"'] \
                         or symbol in ['+', '-', '*', '/']:
                     match (symbol):
                         case '(':
@@ -221,8 +225,10 @@ class Lexer:
                         case ']':
                             token_type = TokenType.RBRACK
 
+                        case ':':
+                            token_type = TokenType.ASSIGN
                         case ';':
-                            token_type = TokenType.END
+                            token_type = TokenType.SEMI
 
 
                         case '&':

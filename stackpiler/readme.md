@@ -17,13 +17,53 @@ MUL : takes the top two values, multiplies them, and pushes the result.
 
 GRAMMAR:
 
-program = {statement}
+program = {compound_statement}
+
+compound_statement = statement_list
+
+statement_list =
+    | statement
+    | statement SEMI statement_list
+
+statement =
+    | expression
+    | compound_statement
+    | assignment_statement
+    | stack_statement
+    | empty
+
+assignment_statement = variable ASSIGN expression
+
+empty =
+
+stack_statement =
+    | POP
+    | DUP
+    | SWAP
+    | OVER
+    | ROT
+    | EXCH
+
 statement =
     | PUSH expression
     | IF comparison {statement} END
-    | (POP | DUP | SWAP | OVER | ROT | EXCH)
     | (ADD | SUB | MUL | DIV | MOD)
 comparison = expression expression (== | != | < | > | <= | >=)
-expression = term term ( ADD | SUB | MUL | DIV | MOD )
-factor = ( POS | NEG ) primary
-primary = INT | FLOAT | IDENTIFIER
+expression =
+    | factor factor ( ADD | SUB | MUL | DIV | MOD )
+    | factor factor ( EQ | NE | LT | GT | LE | GE )
+factor =
+    | LPAREN expression RPAREN
+    | variable
+    | POS factor
+    | NEG factor
+    | INT
+    | FLOAT
+    | BOOL
+    | STR
+
+variable = ID
+
+Despite the effectiveness of the current parser, it lacks the ability to handle
+loops and functions. As it stands, I will have to rewrite the parser to be able
+to handle those cases effectively.

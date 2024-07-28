@@ -69,18 +69,21 @@ class TokenType(Enum):
     CHAR = iota()
     STR = iota() # "[a-zA-Z0-9 ]" # explicit cast with ""
 
-    VAR = iota() # var IDENTIFIER
+    VAR = iota() # var COLON IDENTIFIER
     FUNC = iota() # func IDENTIFIER block end
     END = iota() # end of block declaration. used by: func, if/else, while/do
 
-    IF = iota() # if (condition) (statement) else (statement) fi
-    ELSE = iota() # else block end
+    ASSIGN = iota() # : # variable assignment operator
+    SEMI = iota() # ; # statement separator
+
+    IF = iota() # if (condition) (compound_state) else (compound_state) fi
+    ELSE = iota() # else (compound_state) end
     FI = iota() # end of if block.
 
     WHILE = iota() # while (condition) (statement) end
     DO = iota() # do block while (condition) end. implicit if while comes first.
 
-    IDENTIFIER = iota() # [a-zA-Z] # variable or function name.
+    ID = iota() # [a-zA-Z] # variable or function name.
     COMMENT = iota() # //
 
     RETURN = iota() # return
