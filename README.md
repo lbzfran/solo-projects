@@ -20,9 +20,6 @@ or running with arguments bypasses the interactive terminal.
 
 `python main.py number_of_pulls`
 
-## Teeny Compiler (WIP)
-BASIC compiler built using python.
-
 ## Urban Scraper
 A dictionary script that scrapes for definitions from Urban Dictionary. Can be called with or without arguments.
 
