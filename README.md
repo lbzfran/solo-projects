@@ -9,6 +9,12 @@ Reports by file extension the count and total byte size in HTML/XML. Written in 
 
 Needs to be compiled in Visual Studio.
 
+## Stackpiler
+Concatenative Stack-based Programming language based on Forth,
+and written in Python.
+
+Presently not ready for production.
+
 ## Spotify Gacha
 Proof of concept work that turns a spotify playlist into a gacha system, and allows user to pull a given number of songs.
 
@@ -20,9 +26,6 @@ or running with arguments bypasses the interactive terminal.
 
 `python main.py number_of_pulls`
 
-## Teeny Compiler (WIP)
-BASIC compiler built using python.
-
 ## Urban Scraper
 A dictionary script that scrapes for definitions from Urban Dictionary. Can be called with or without arguments.
 
@@ -33,10 +36,5 @@ Running without arguments will open an interactive terminal where the user can w
 Running with arguments defines the words given and passes them to stdout.
 
 `python uscrape.py word1 word2 ...`
-
-## Window Maker (WIP)
-Currently opens a directory, and scans for images to view.
-
-`python window.py`
 
 
