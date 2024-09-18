@@ -1,2 +1,5 @@
 // test
-bool a: true; bool x: false; push a; push x; or; not;
+int x: 1; int y: 2;
+push x; push y;
+add;
+pop;
